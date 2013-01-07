@@ -16,8 +16,12 @@ local function lookup(object, key)
   end
 end
 
+local function _tostring(object)
+  return object:tostring()
+end
+
 -- Objects
-local object_mt = { __index = lookup }
+local object_mt = { __index = lookup, __tostring = _tostring }
 
 local Object = {}
 setmetatable(Object, object_mt)
@@ -38,6 +42,10 @@ function Object:is_a(other)
   end
 end
 
+function Object:tostring()
+  return '<Object>'
+end
+
 -- Classes
 
 local Class = Object:clone()
@@ -49,13 +57,18 @@ function Class:new(...)
   return o
 end
 
-function Class:initialize() end
+function Class:initialize(table)
+  if type(table) == 'table' then
+    for k,v in pairs(table) do
+      self[k] = v
+    end
+  end
+end
 
 -- Generics implementation
 
 local function generic_search(self, arg, argn)
   local method, method_specificity = nil, -1
-  print(arg[1])
   -- Search through method signatures (most recently added first)
   for i = #self, 1, -1 do
     -- Search through arguments
@@ -94,10 +107,19 @@ local function generic_search(self, arg, argn)
   return method
 end
 
+local function generic_describe(self)
+  return 'generic("' .. self.name .. '", '.. self.argc .. ')'
+end
+
 local function generic_apply(self, ...)
-  local search = generic_search(self, {...}, select('#', ...))
+  local arg = {...}
+  local argc = select('#', ...)
+  if argc < self.argc then
+    error(self:describe() .. ': did not receive enough arguments')
+  end
+  local search = generic_search(self, arg, self.argc)
   if not search then
-    error('generic("' .. self.name .. '") failed to find an appropriate method')
+    error(self:describe() .. ': failed to find an appropriate method for arguments ')
   end
   return search(...)
 end
@@ -115,12 +137,12 @@ local function generic_method(self, ...)
     end
 
     if i == arg.n then
-      if type(arg[i]) == 'function' then
-        error('generic("' .. self.name .. '"):method expected function as final argument')
+      if type(arg[i]) ~= 'function' then
+        error(self:describe() .. ':method expected function as final argument')
       end
     else
       if not rawget(arg[i], 'prototype') then
-        error('generic("' .. self.name .. '"):method received non-object as argument')
+        error(self:describe() .. ':method received non-object as argument')
       end
     end
   end
@@ -137,8 +159,11 @@ local generic_mt = {
   __call = generic_apply
 }
 
-local function generic(name)
-  local g = { name = name, method = generic_method }
+local function generic(name, argc, ...)
+  assert(type(name) == 'string')
+  assert(type(argc) == 'number')
+  local g = { name = name, method = generic_method, method2 = generic_method2,
+              argc = argc, describe = generic_describe }
   setmetatable(g, generic_mt)
   return g 
 end
