@@ -1,4 +1,6 @@
--- generic/init.lua - Small footprint single-inheritance prototypal object system with support for multiple dispatch
+-- lua-generic - Small footprint single-inheritance prototypal object system with support for multiple dispatch
+-- Copyright (c) 2013 ioddly
+-- Released under the Boost License: <http://www.boost.org/LICENSE_1_0.txt>
 
 -- Slot lookup
 local function lookup(object, key)
