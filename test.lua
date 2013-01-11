@@ -1,3 +1,4 @@
+
 local g = require('init')
 local Object, Class, generic = g.Object, g.Class, g.Generic
 
@@ -5,7 +6,7 @@ local test = g.Object:clone()
 assert(rawget(test, 'prototype') == g.Object)
 assert(test.prototype == g.Object)
 
-local Asteroid = g.Class:clone()
+local Asteroid = g.Class:clone({'Asteroid'})
 local Ship = g.Class:clone()
 local Gold = g.Class:clone()
 local Bad = g.Class:clone()

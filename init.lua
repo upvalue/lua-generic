@@ -50,10 +50,35 @@ end
 
 local Class = Object:clone()
 
+function Class:tostring()
+  if self.is_instance then
+    return '<' .. self.class_name .. ' instance>'
+  else
+    return '<' .. self.class_name .. ' class>'
+  end
+end
+
+function Class:clone(tbl)
+  local class_name = 'unknown'
+  if tbl then
+    if type(tbl[1]) ~= 'string' then
+      error('Class:clone expected string as first table element')
+    end
+    class_name = tbl[1]
+    table.remove(tbl, 1)
+  else
+    tbl = {}
+  end
+  local o = Object.clone(Class, tbl)
+  o.class_name = class_name
+  return o
+end
+
 function Class:new(...)
   local o = Object:clone()
   rawset(o, 'prototype', self)
   o:initialize(...)
+  o.is_instance = true
   return o
 end
 
