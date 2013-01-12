@@ -61,15 +61,22 @@ end
 function Class:clone(tbl)
   local class_name = 'unknown'
   if tbl then
-    if type(tbl[1]) ~= 'string' then
-      error('Class:clone expected string as first table element')
+    if type(tbl) == 'string' then
+      class_name = tbl
+      tbl = {}
+    elseif type(tbl) ~= 'table' then
+      error('Class:clone expected table as argument but got ' .. type(tbl))
+    else
+      if type(tbl[1]) ~= 'string' then
+        error('Class:clone expected string as first table element')
+      end
+      class_name = tbl[1]
+      table.remove(tbl, 1)
     end
-    class_name = tbl[1]
-    table.remove(tbl, 1)
   else
     tbl = {}
   end
-  local o = Object.clone(Class, tbl)
+  local o = Object.clone(self, tbl)
   o.class_name = class_name
   return o
 end
